@@ -1,15 +1,17 @@
+# settings.py
+
 import os
-from pathlib import Path
-from decouple import config
+import sys
 import dj_database_url
-import django_heroku
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY', default='your-default-secret-key')
-DEBUG = config('DEBUG', default=False, cast=bool)
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
 
-ALLOWED_HOSTS = ['*']
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+
+ALLOWED_HOSTS = ["your-app-name.herokuapp.com", "localhost", "127.0.0.1"]  # Replace with your actual Heroku app URL
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -20,10 +22,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'recipes',
     'ingredients',
+    # Add 'users' if you have a users app
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this line
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -37,7 +41,7 @@ ROOT_URLCONF = 'recipe_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -50,14 +54,19 @@ TEMPLATES = [
     },
 ]
 
-LOGIN_REDIRECT_URL = 'recipes:recipes_list'
-LOGOUT_REDIRECT_URL = 'recipes:logout_success'
-
 WSGI_APPLICATION = 'recipe_project.wsgi.application'
 
+# Default database configuration
 DATABASES = {
-    'default': dj_database_url.config(default=config('DATABASE_URL'))
+    'default': dj_database_url.config(default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
 }
+
+# Ensure a separate test database is used when running tests
+if 'test' in sys.argv or 'test_coverage' in sys.argv:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'test_db.sqlite3',
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -83,9 +92,14 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-django_heroku.settings(locals())
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = 'recipes:recipes_list'
+LOGOUT_REDIRECT_URL = 'recipes:logout_success'
