@@ -1,5 +1,3 @@
-# settings.py
-
 import os
 import sys
 import dj_database_url
