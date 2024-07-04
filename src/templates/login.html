@@ -62,6 +62,12 @@
         .form-footer a:hover {
             text-decoration: underline;
         }
+        .errorlist {
+            color: red;
+            list-style-type: none;
+            padding: 0;
+            margin: 0 0 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -69,13 +75,30 @@
         <h2>Login</h2>
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
+            {% if form.non_field_errors %}
+                <ul class="errorlist">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% for field in form %}
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <ul class="errorlist">
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endfor %}
             <button type="submit">Login</button>
         </form>
         <div class="form-footer">
             <a href="{% url 'password_reset' %}">Forgot Password?</a>
             <p>Don't have an account? <a href="{% url 'recipes:register' %}">Register here</a>.</p>
-        </div>
+        </div>        
     </div>
 </body>
 </html>
