@@ -7,9 +7,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
 
+# Set DEBUG to True locally, False on Heroku
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ["your-app-name.herokuapp.com", "localhost", "127.0.0.1"]  # Replace with your actual Heroku app URL
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1', 
+    'recipe-application-1-cf18178c611b.herokuapp.com',
+    '.herokuapp.com'
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -20,7 +26,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'recipes',
     'ingredients',
-    # Add 'users' if you have a users app
 ]
 
 MIDDLEWARE = [
@@ -99,3 +104,26 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'recipes:recipes_list'
 LOGOUT_REDIRECT_URL = 'home'
+
+# Heroku settings
+if 'DATABASE_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+
+# HTTPS settings
+if not DEBUG and 'DYNO' in os.environ:  # Only on Heroku
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+# Email settings (for password reset)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development
+# For production, you'd use something like:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'your-smtp-server'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')

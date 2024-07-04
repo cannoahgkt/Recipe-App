@@ -46,11 +46,15 @@
     </header>
     <main>
         <figure>
-            <img
-        src="{{ object.pic.url }}"
-        alt="{{ object.title }}"
-        class="recipe-image"
-      />
+            {% if recipe.pic %}
+                <img
+                    src="{{ recipe.pic.url }}"
+                    alt="{{ recipe.name }}"
+                    class="recipe-image"
+                />
+            {% else %}
+                <p>No image available</p>
+            {% endif %}
         </figure>
         <section>
             <h2>Description:</h2>
